@@ -1,7 +1,7 @@
 {
   "name": "sync-async",
   "version": "1.0.0",
-  "description": "",
+  "description": "Example of synchronous and asynchronous process",
   "author": "Daniel Rohers Moura",
   "repository": {
     "type": "git",
