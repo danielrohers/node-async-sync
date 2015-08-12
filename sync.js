@@ -1,10 +1,13 @@
+/*jslint node: true */
+
+'use strict';
+
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var async = require('async');
 var moment = require('moment');
-
-var _folder = 'images';
+var config = require('./config');
 
 var _download = function (cb) {
     var start = moment();
@@ -24,7 +27,7 @@ var _download = function (cb) {
 
                 async.eachSeries(result, function (img, cbEach) {
                     var name = img.attribs.href;
-                    var imgFolder = _folder + '/' + name;
+                    var imgFolder = config.folder + '/' + name;
                     var uriImg = uri + name;
 
                     request
@@ -35,59 +38,15 @@ var _download = function (cb) {
                         })
                         .pipe(fs.createWriteStream(imgFolder));
                 }, function () {
-                    console.log('Total async: %s milliseconds', moment().diff(start, 'milliseconds'));
+                    console.log('Total async: %s seconds', moment().diff(start, 'seconds'));
                     cb(null, '');
                 });
             }
     });
 };
 
-var _createFolder = function (cb) {
-    fs.mkdir(_folder, function (err) {
-        if (err)
-            return cb(err);
-        console.log('Created folder');
-        cb(null, '');
-    });
-};
-
-var _removeFiles = function (cb) {
-    fs.readdir(_folder, function (err, files) {
-        async.each(files, function (file, cbEach) {
-            var folderFile = _folder + '/' + file;
-            fs.unlink(folderFile, function (err) {
-                if (err)
-                    return cbEach(err);
-                return cbEach();
-            })
-        }, cb)
-    })
-}
-
-var _removeFolder = function (cb) {
-    _removeFiles(function (err) {
-        if (err)
-            return cb(err);
-
-        fs.rmdir(_folder, function (err) {
-            if (err)
-                return cb(err);
-
-            console.log('Removed folder');
-
-            _createFolder(cb);
-        })  
-    })
-}
-
-var _prepareFolder = function (cb) {
-    fs.exists(_folder, function (exists) {
-        exists ? _removeFolder(cb) : _createFolder(cb)
-    });
-};
-
 async.series([
-    _prepareFolder,
+    config.prepareFolder,
     _download
 ])
 
